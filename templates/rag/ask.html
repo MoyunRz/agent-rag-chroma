@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>RAG 问答</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; }
+    a { color: #333; }
+    .err { background: #f8d7da; padding: .5rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    form { background: #f5f5f5; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+    label { display: block; margin: .5rem 0 .2rem; font-weight: bold; }
+    select, textarea { width: 100%; padding: .5rem; margin-bottom: .5rem; font-size: 1rem; }
+    textarea { resize: vertical; min-height: 80px; }
+    button { padding: .6rem 2rem; font-size: 1rem; cursor: pointer; }
+    .result { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .answer { white-space: pre-wrap; line-height: 1.7; }
+    .meta { color: #888; font-size: .85rem; margin-top: 1rem; }
+    .citation { background: #f9f9f9; padding: .8rem; border-radius: 4px; margin-bottom: .5rem; }
+    .citation .title { font-weight: bold; }
+    .citation .score { color: #666; font-size: .85rem; }
+    .citation .snippet { color: #444; font-size: .9rem; margin-top: .3rem; }
+  </style>
+</head>
+<body>
+  <h1>RAG 知识库问答</h1>
+  <p><a href="/">知识库管理</a> | <a href="/ingestion/">文档入库</a></p>
+
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <label>选择知识库</label>
+    <select name="kb_id" required>
+      <option value="">-- 选择知识库 --</option>
+      {% for kb in kb_list %}
+        <option value="{{ kb.id }}">{{ kb.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label>你的问题</label>
+    <textarea name="question" placeholder="输入你想问的知识库问题..." required>{{ question|default:'' }}</textarea>
+
+    <button type="submit">提问</button>
+  </form>
+
+  {% if answer %}
+  <div class="result">
+    <h3>回答</h3>
+    <div class="answer">{{ answer }}</div>
+    <div class="meta">
+      trace: {{ trace_id }} | 耗时: {{ elapsed_ms }}ms
+    </div>
+  </div>
+  {% endif %}
+
+  {% if citations %}
+  <h3>引用来源 ({{ citations|length }})</h3>
+  {% for c in citations %}
+  <div class="citation">
+    <span class="title">[{{ c.index }}] {{ c.title }}</span>
+    {% if c.page %}(页码 {{ c.page }}){% endif %}
+    {% if c.heading %} | {{ c.heading }}{% endif %}
+    <span class="score"> | 得分: {{ c.score }}</span>
+    <div class="snippet">{{ c.text_snippet }}</div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</body>
+</html>

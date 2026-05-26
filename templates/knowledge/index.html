@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>知识库管理</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+    form { background: #f5f5f5; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+    label { display: block; margin: .5rem 0 .2rem; font-weight: bold; }
+    input[type=text], textarea { width: 100%; padding: .4rem; margin-bottom: .5rem; }
+    button { padding: .5rem 1.5rem; font-size: 1rem; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .5rem; border-bottom: 1px solid #ddd; text-align: left; }
+    a { color: #333; }
+    .card { background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>知识库管理</h1>
+  <p><a href="/ingestion/">文档入库</a> | <a href="/rag/">RAG 问答</a></p>
+
+  <form method="post" action="{% url 'knowledge:create_kb' %}">
+    {% csrf_token %}
+    <h3>创建知识库</h3>
+    <label>名称</label>
+    <input type="text" name="name" required>
+    <label>描述（可选）</label>
+    <textarea name="description" rows="2"></textarea>
+    <button type="submit">创建</button>
+  </form>
+
+  <h2>知识库列表</h2>
+  {% for kb in kb_list %}
+    <div class="card">
+      <strong>{{ kb.name }}</strong>
+      {% if kb.description %}<p style="color:#666;margin:.3rem 0;">{{ kb.description }}</p>{% endif %}
+      <small>创建于 {{ kb.created_at|date:"Y-m-d H:i" }}</small>
+    </div>
+  {% empty %}
+    <p>暂无知识库，请创建一个。</p>
+  {% endfor %}
+
+  <h2 style="margin-top:2rem;">最近文档</h2>
+  <table>
+    <tr><th>标题</th><th>知识库</th><th>时间</th></tr>
+    {% for doc in documents %}
+    <tr><td>{{ doc.title }}</td><td>{{ doc.kb.name }}</td><td>{{ doc.created_at|date:"Y-m-d H:i" }}</td></tr>
+    {% empty %}
+    <tr><td colspan="3">暂无文档</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
